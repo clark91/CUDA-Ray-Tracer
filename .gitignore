@@ -1,0 +1,5 @@
+*.out
+*.ppm
+*.obj
+*.gch
+.vscode/
