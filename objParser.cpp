@@ -4,7 +4,7 @@
 #include <string.h>
 #include <sstream>
 
-std::vector<tri> parseObj(std::string file, Material material, Vector3f offset){
+std::vector<tri> parseObj(std::string file, Material material, Vector3f offset, float scale){
   std::vector<Vector3f> vertices;
   std::vector<tri> tris;
 
@@ -36,7 +36,6 @@ std::vector<tri> parseObj(std::string file, Material material, Vector3f offset){
       Vector3f vert;
       std::vector<std::string> tokens = parseLine(line, ' ');
 
-      float scale = 1.f;
       vert.x = std::stof(tokens[0]) * scale;
       vert.y = std::stof(tokens[1]) * scale;
       vert.z = std::stof(tokens[2]) * scale;

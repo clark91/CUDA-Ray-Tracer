@@ -167,6 +167,6 @@ struct tri{
   }
 };
 
-std::vector<tri> parseObj(std::string file, Material material = Material(Vector3f(0.9,0.1,0.0), 10., Vector4f(0.3,0.1,0.1, 0.0)), Vector3f offset = Vector3f(0,0,0));
+std::vector<tri> parseObj(std::string file, Material material = Material(Vector3f(0.9,0.1,0.0), 10., Vector4f(0.3,0.1,0.1, 0.0)), Vector3f offset = Vector3f(0,0,0), float scale = 1.f);
 
 std::vector<std::string> parseLine(std::string input, char delim);
