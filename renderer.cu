@@ -18,7 +18,7 @@ __host__ __device__ void swap(float &a, float &b) {
 }
 
 __device__ Vector3f reflect(Vector3f I, Vector3f N) {
-    return (I - N * I.dot(N) * 2.f);
+    return (I - N * 2.f * I.dot(N));
 }
 
 __device__ Vector3f refract(Vector3f &I, Vector3f &N, const float &refractive_index) {
@@ -64,12 +64,12 @@ __device__ Vector3f castRay(Vector3f &orig, Vector3f &dir, tri *tris, int numTri
     }
 
     Vector3f reflect_dir = reflect(dir, closestTri.normal).normalize();
-    Vector3f reflect_orig = reflect_dir.dot(closestTri.normal) < 0 ? closestTri.position - closestTri.normal * 1e-3 : closestTri.position + closestTri.normal * 1e-3;
+    Vector3f reflect_orig = reflect_dir.dot(closestTri.normal) < 0 ? closestTri.position - closestTri.normal*1e-3 : closestTri.position + closestTri.normal*1e-3;
     Vector3f reflect_color = castRay(reflect_orig, reflect_dir, tris, numTris, lights, numLights, depth + 1);
 
     Vector3f refract_dir = refract(dir, closestTri.normal, closestTri.material.refractive_index).normalize();
     Vector3f refract_orig = refract_dir.dot(closestTri.normal) < 0 ? closestTri.position - closestTri.normal * 1e-3 : closestTri.position + closestTri.normal * 1e-3;
-    Vector3f refract_color = castRay(refract_orig, reflect_dir, tris, numTris, lights, numLights, depth + 1);
+    Vector3f refract_color = castRay(refract_orig, refract_dir, tris, numTris, lights, numLights, depth + 1);
 
     float diffuse_light_intensity = 0, specular_light_intensity = 0;
 
@@ -122,7 +122,7 @@ void render(std::vector<tri> &tris, std::vector<Light> &lights) {
     cudaMemcpy(d_tris, tris.data(), tris.size() * sizeof(tri), cudaMemcpyHostToDevice);
     cudaMemcpy(d_lights, lights.data(), lights.size() * sizeof(Light), cudaMemcpyHostToDevice);
 
-    size_t stackSize = 4096 * 4096; 
+    size_t stackSize = 4096 * 4096 * 4; 
     cudaDeviceSetLimit(cudaLimitStackSize, stackSize);
 
     dim3 blockSize(16, 16);
@@ -149,9 +149,9 @@ void render(std::vector<tri> &tris, std::vector<Light> &lights) {
 }
 
 int main() {
-    Material ivory(Vector3f(0.6, 0.3, 0.1), 50., Vector4f(0.4, 0.4, 0.3));
-    Material red_rubber(Vector3f(0.9, 0.1, 0.0), 10., Vector4f(0.3, 0.1, 0.1));
-    Material mirror(Vector3f(0.0, 10.0, 0.8), 1425., Vector4f(1.0, 1.0, 1.0));
+    Material ivory(Vector3f(0.6, 0.3, 0.1), 50., Vector4f(0.4, 0.4, 0.3,0.0),1.0);
+    Material red_rubber(Vector3f(0.9, 0.1, 0.0), 10., Vector4f(0.3, 0.1, 0.1, 0.0),1.0);
+    Material mirror(Vector3f(1.0, 1.0, 1.0), 9999., Vector4f(1.0, 1.0, 1.0, 0.0),1.0);
     Material glass(Vector3f(0.6, 0.7, 0.8), 125., Vector4f(0.0, 0.5, 0.1, 0.8), 1.5);
 
     std::vector<tri> triangles;
@@ -159,11 +159,11 @@ int main() {
     std::vector<tri> monkey = parseObj("monkey.obj", ivory, Vector3f(0., 0., -4.));
     triangles.insert(std::end(triangles), std::begin(monkey), std::end(monkey));
 
-    std::vector<tri> teapot = parseObj("teapot.obj", mirror, Vector3f(0., -1., -10.));
-    triangles.insert(std::end(triangles), std::begin(teapot), std::end(teapot));
+    std::vector<tri> teapot = parseObj("teapot.obj", glass, Vector3f(0., -2., -10.));
+    //triangles.insert(std::end(triangles), std::begin(teapot), std::end(teapot));
 
-    std::vector<tri> teapot2 = parseObj("teapot.obj", red_rubber, Vector3f(0., 1, -7.), 0.5);
-    triangles.insert(std::end(triangles), std::begin(teapot2), std::end(teapot2));
+    std::vector<tri> teapot2 = parseObj("teapot.obj", red_rubber, Vector3f(0., -2, -20.));
+    //triangles.insert(std::end(triangles), std::begin(teapot2), std::end(teapot2));
 
     std::vector<Light> lights;
     lights.push_back(Light(Vector3f(30, 50, -25), 5.0f));
